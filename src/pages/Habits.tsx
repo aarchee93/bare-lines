@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, CheckSquare, Square } from "lucide-react";
 
 interface Habit {
@@ -8,14 +8,25 @@ interface Habit {
 }
 
 const Habits = () => {
-  const [habits, setHabits] = useState<Habit[]>([
-    { id: "1", name: "Morning Pages", completedDates: ["2024-01-15", "2024-01-13", "2024-01-12"] },
-    { id: "2", name: "Exercise", completedDates: ["2024-01-14", "2024-01-12", "2024-01-10"] },
-    { id: "3", name: "Reading", completedDates: ["2024-01-15", "2024-01-14", "2024-01-13", "2024-01-11"] },
-    { id: "4", name: "Meditation", completedDates: ["2024-01-13", "2024-01-11"] },
-  ]);
+  const [habits, setHabits] = useState<Habit[]>(() => {
+    const saved = localStorage.getItem('tracker-habits');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return [
+      { id: "1", name: "Morning Pages", completedDates: [] },
+      { id: "2", name: "Exercise", completedDates: [] },
+      { id: "3", name: "Reading", completedDates: [] },
+      { id: "4", name: "Meditation", completedDates: [] },
+    ];
+  });
 
   const [newHabit, setNewHabit] = useState("");
+
+  // Save to localStorage whenever habits change
+  useEffect(() => {
+    localStorage.setItem('tracker-habits', JSON.stringify(habits));
+  }, [habits]);
 
   // Generate the last 30 days
   const getLast30Days = () => {

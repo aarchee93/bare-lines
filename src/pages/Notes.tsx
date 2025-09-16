@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Grid, FileText, Download, Edit3 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Grid, FileText, Download, Edit3, Trash2 } from "lucide-react";
 
 interface Note {
   id: string;
@@ -10,28 +10,39 @@ interface Note {
 }
 
 const Notes = () => {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "1",
-      title: "Project Ideas",
-      content: "1. Minimalist task tracker\n2. Habit formation app\n3. Digital notebook interface\n\nFocus on clean, distraction-free design with paper-like aesthetics.",
-      createdAt: "2024-01-15T09:00:00Z",
-      updatedAt: "2024-01-15T10:30:00Z",
-    },
-    {
-      id: "2", 
-      title: "Meeting Notes - Q1 Planning",
-      content: "Key Discussion Points:\n- Review previous quarter performance\n- Set objectives for Q1 2024\n- Resource allocation\n- Timeline development\n\nNext Steps:\n- Finalize budget proposals\n- Schedule follow-up meetings",
-      createdAt: "2024-01-14T14:00:00Z",
-      updatedAt: "2024-01-14T15:45:00Z",
+  const [notes, setNotes] = useState<Note[]>(() => {
+    const saved = localStorage.getItem('tracker-notes');
+    if (saved) {
+      return JSON.parse(saved);
     }
-  ]);
+    return [
+      {
+        id: "1",
+        title: "Welcome to Notes",
+        content: "This is your digital notebook.\n\nYou can:\n- Create new notes\n- Edit existing ones\n- Toggle between lined and grid backgrounds\n- Export notes as text files\n\nStart writing your thoughts and ideas!",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+    ];
+  });
 
-  const [selectedNote, setSelectedNote] = useState<Note | null>(notes[0] || null);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [editTitle, setEditTitle] = useState("");
   const [backgroundPattern, setBackgroundPattern] = useState<'lines' | 'grid'>('lines');
+
+  // Save to localStorage whenever notes change
+  useEffect(() => {
+    localStorage.setItem('tracker-notes', JSON.stringify(notes));
+  }, [notes]);
+
+  // Set first note as selected when notes load
+  useEffect(() => {
+    if (notes.length > 0 && !selectedNote) {
+      setSelectedNote(notes[0]);
+    }
+  }, [notes, selectedNote]);
 
   const createNewNote = () => {
     const newNote: Note = {
@@ -155,27 +166,41 @@ const Notes = () => {
                 setSelectedNote(note);
                 setIsEditing(false);
               }}
-              className={`p-4 border-b border-foreground cursor-pointer hover:bg-muted ${
+              className={`group p-4 border-b border-foreground cursor-pointer hover:bg-muted ${
                 selectedNote?.id === note.id ? 'bg-muted' : ''
               }`}
             >
-              <h3 className="font-medium text-sm mb-1 truncate">{note.title}</h3>
-              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                {note.content.substring(0, 80)}...
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(note.updatedAt).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
-          
-          {notes.length === 0 && (
-            <div className="p-8 text-center text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No notes yet</p>
-              <p className="text-sm mt-1">Create your first note</p>
-            </div>
-          )}
+              <div>
+                <h3 className="font-medium text-sm mb-1 truncate">{note.title}</h3>
+                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                  {note.content.length > 80 ? note.content.substring(0, 80) + '...' : note.content}
+                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(note.updatedAt).toLocaleDateString()}
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteNote(note.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive hover:text-destructive-foreground transition-all"
+                    title="Delete note"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+                </div>
+              </div>
+            ))}
+            
+            {notes.length === 0 && (
+              <div className="p-8 text-center text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No notes yet</p>
+                <p className="text-sm mt-1">Create your first note</p>
+              </div>
+            )}
         </div>
       </div>
 

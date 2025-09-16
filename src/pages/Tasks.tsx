@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, CheckSquare, Square, Calendar, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, CheckSquare, Square, Calendar, Filter, Trash2 } from "lucide-react";
 
 interface Task {
   id: string;
@@ -11,17 +11,26 @@ interface Task {
 }
 
 const Tasks = () => {
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: "1", text: "Review quarterly goals", completed: false, dueDate: "2024-01-15", priority: 'high', category: 'monthly' },
-    { id: "2", text: "Update project documentation", completed: true, dueDate: "2024-01-15", priority: 'medium', category: 'weekly' },
-    { id: "3", text: "Plan next week's priorities", completed: false, dueDate: "2024-01-15", priority: 'low', category: 'daily' },
-    { id: "4", text: "Team standup meeting", completed: true, dueDate: "2024-01-15", priority: 'medium', category: 'daily' },
-    { id: "5", text: "Prepare monthly report", completed: false, dueDate: "2024-01-30", priority: 'high', category: 'monthly' },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const saved = localStorage.getItem('tracker-tasks');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return [
+      { id: "1", text: "Review quarterly goals", completed: false, dueDate: new Date().toISOString().split('T')[0], priority: 'high', category: 'monthly' },
+      { id: "2", text: "Update project documentation", completed: false, dueDate: new Date().toISOString().split('T')[0], priority: 'medium', category: 'weekly' },
+      { id: "3", text: "Plan next week's priorities", completed: false, dueDate: new Date().toISOString().split('T')[0], priority: 'low', category: 'daily' },
+    ];
+  });
   
   const [newTask, setNewTask] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'daily' | 'weekly' | 'monthly'>('all');
   const [showCompleted, setShowCompleted] = useState(true);
+
+  // Save to localStorage whenever tasks change
+  useEffect(() => {
+    localStorage.setItem('tracker-tasks', JSON.stringify(tasks));
+  }, [tasks]);
 
   const toggleTask = (taskId: string) => {
     setTasks(prev => prev.map(task => 
@@ -42,6 +51,10 @@ const Tasks = () => {
       setTasks(prev => [...prev, task]);
       setNewTask("");
     }
+  };
+
+  const deleteTask = (taskId: string) => {
+    setTasks(prev => prev.filter(task => task.id !== taskId));
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -151,6 +164,14 @@ const Tasks = () => {
                   </span>
                 </div>
               </div>
+              
+              <button
+                onClick={() => deleteTask(task.id)}
+                className="flex-shrink-0 p-1 hover:bg-destructive hover:text-destructive-foreground transition-colors ml-2"
+                title="Delete task"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </div>
           </div>
         ))}
