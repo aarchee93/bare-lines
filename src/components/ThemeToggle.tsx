@@ -12,13 +12,13 @@ export function ThemeToggle() {
 
   return (
     <div className="flex items-center space-x-2">
-      <span className="text-sm font-medium">☀️</span>
+      <span className="text-sm font-medium"></span>
       <Switch
         checked={isDark}
         onCheckedChange={toggleTheme}
         aria-label="Toggle theme"
       />
-      <span className="text-sm font-medium">🌙</span>
+      <span className="text-sm font-medium"></span>
     </div>
   );
 }
