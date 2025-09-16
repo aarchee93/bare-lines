@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Layout = () => {
   const navItems = [
@@ -37,6 +38,9 @@ const Layout = () => {
                   </NavLink>
                 ))}
               </div>
+            </div>
+            <div className="flex items-center">
+              <ThemeToggle />
             </div>
           </div>
         </div>
